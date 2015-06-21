@@ -163,7 +163,7 @@ public:
 		fprintf(fp, "{\n");
 
 		/* For each Library */
-		for (lib_it = libmap.begin(); lib_it != libmap.end(); lib_it++) {
+		for (lib_it = libmap.begin(); lib_it != libmap.end();) {
 
 			fprintf(fp, "\t\"%s\": {\n", lib_it->first.c_str());
 			fprintf(fp, "\t\t\"nid\": %u,\n", lib_it->second.nid);
@@ -172,7 +172,7 @@ public:
 			Library &lib = lib_it->second;
 
 			/* For each module */
-			for (mod_it = lib.modmap.begin(); mod_it != lib.modmap.end(); mod_it++) {
+			for (mod_it = lib.modmap.begin(); mod_it != lib.modmap.end();) {
 
 				fprintf(fp, "\t\t\t\"%s\": {\n", mod_it->first.c_str());
 				fprintf(fp, "\t\t\t\t\"nid\": %u,\n", mod_it->second.nid);
@@ -182,20 +182,43 @@ public:
 				Module &mod = mod_it->second;
 
 				/* For each import */
-				for (imp_it = mod.impmap.begin(); imp_it != mod.impmap.end(); imp_it++) {
+				for (imp_it = mod.impmap.begin(); imp_it != mod.impmap.end();) {
 
-					fprintf(fp, "\t\t\t\t\t\"%s\": %u,\n",
+					fprintf(fp, "\t\t\t\t\t\"%s\": %u",
 						imp_it->first.c_str(),
 						imp_it->second.nid);
 
+					imp_it++;
+					if (imp_it == mod.impmap.end()) {
+						fprintf(fp, "\n");
+					} else {
+						fprintf(fp, ",\n");
+					}
 				}
 
-				fprintf(fp, "\t\t\t},\n");
+				/* Close functions */
+				fprintf(fp, "\t\t\t\t},\n");
+
+				/* Add *empty* variables (TEMPORAL) */
+				fprintf(fp, "\t\t\t\t\"variables\": {\n");
+				fprintf(fp, "\t\t\t\t}\n");
+
+				mod_it++;
+				if (mod_it == lib.modmap.end()) {
+					fprintf(fp, "\t\t\t}\n");
+				} else {
+					fprintf(fp, "\t\t\t},\n");
+				}
 
 			}
 
-			fprintf(fp, "\t\t},\n");
-			fprintf(fp, "\t},\n");
+			lib_it++;
+			fprintf(fp, "\t\t}\n");
+			if (lib_it == libmap.end()) {
+				fprintf(fp, "\t}\n");
+			} else {
+				fprintf(fp, "\t},\n");
+			}
 		}
 
 		fprintf(fp, "}\n");
